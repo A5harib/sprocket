@@ -1,0 +1,11 @@
+/target/
+/out/
+/renders/
+/test-assets/
+*.mp4
+*.wav
+*.png
+*.jpg
+*.log
+.DS_Store
+Thumbs.db
