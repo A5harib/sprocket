@@ -233,39 +233,150 @@ pub struct Tween {
     pub ease: Ease,
 }
 
-#[derive(Debug, Clone, Copy, Default, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Ease {
     #[default]
+    #[serde(alias = "linear", alias = "power0", alias = "power0_in", alias = "power0_out", alias = "power0_in_out")]
     None,
     Power1In,
+    #[serde(alias = "power1")]
     Power1Out,
+    Power1InOut,
     Power2In,
+    #[serde(alias = "power2")]
     Power2Out,
     Power2InOut,
     Power3In,
+    #[serde(alias = "power3")]
     Power3Out,
+    Power3InOut,
+    Power4In,
+    #[serde(alias = "power4")]
+    Power4Out,
+    Power4InOut,
+    SineIn,
+    #[serde(alias = "sine")]
+    SineOut,
+    SineInOut,
+    ExpoIn,
+    #[serde(alias = "expo")]
+    ExpoOut,
+    ExpoInOut,
+    CircIn,
+    #[serde(alias = "circ")]
+    CircOut,
+    CircInOut,
+    BackIn,
+    #[serde(alias = "back")]
+    BackOut,
+    BackInOut,
+    ElasticIn,
+    #[serde(alias = "elastic")]
+    ElasticOut,
+    ElasticInOut,
+    BounceIn,
+    #[serde(alias = "bounce")]
+    BounceOut,
+    BounceInOut,
+    /// Jump to the end value at the tween's start (GSAP `steps(1)` / `tl.set`).
+    Step,
+}
+
+fn ease_out_bounce(p: f64) -> f64 {
+    let n1 = 7.5625;
+    let d1 = 2.75;
+    if p < 1.0 / d1 {
+        n1 * p * p
+    } else if p < 2.0 / d1 {
+        let p = p - 1.5 / d1;
+        n1 * p * p + 0.75
+    } else if p < 2.5 / d1 {
+        let p = p - 2.25 / d1;
+        n1 * p * p + 0.9375
+    } else {
+        let p = p - 2.625 / d1;
+        n1 * p * p + 0.984375
+    }
+}
+
+/// Build in / out / in-out variants from an "in" curve, the way GSAP does.
+fn ease_variant(f: impl Fn(f64) -> f64, p: f64, kind: u8) -> f64 {
+    match kind {
+        0 => f(p),
+        1 => 1.0 - f(1.0 - p),
+        _ => {
+            if p < 0.5 {
+                f(2.0 * p) * 0.5
+            } else {
+                1.0 - f(2.0 * (1.0 - p)) * 0.5
+            }
+        }
+    }
 }
 
 impl Ease {
-    /// Exact GSAP power easing curve: power1=quad(2), power2=cubic(3), power3=quart(4).
+    /// GSAP easing curves: power1=quad, power2=cubic, power3=quart, power4=quint.
     pub fn apply(self, p: f64) -> f64 {
+        use std::f64::consts::PI;
         let p = p.clamp(0.0, 1.0);
+        let pow = |n: i32| move |x: f64| x.powi(n);
+        let sine = |x: f64| 1.0 - (x * PI / 2.0).cos();
+        let expo = |x: f64| if x <= 0.0 { 0.0 } else { 2f64.powf(10.0 * (x - 1.0)) };
+        let circ = |x: f64| 1.0 - (1.0 - x * x).max(0.0).sqrt();
+        let back = |x: f64| {
+            let s = 1.70158;
+            x * x * ((s + 1.0) * x - s)
+        };
+        let elastic = |x: f64| {
+            if x <= 0.0 || x >= 1.0 {
+                return x;
+            }
+            let period = 0.3;
+            let s = period / 4.0;
+            let x = x - 1.0;
+            -(2f64.powf(10.0 * x) * ((x - s) * (2.0 * PI) / period).sin())
+        };
+        let bounce_in = |x: f64| 1.0 - ease_out_bounce(1.0 - x);
         match self {
             Ease::None => p,
-            Ease::Power1In => p * p,
-            Ease::Power1Out => 1.0 - (1.0 - p).powi(2),
-            Ease::Power2In => p.powi(3),
-            Ease::Power2Out => 1.0 - (1.0 - p).powi(3),
-            Ease::Power2InOut => {
-                if p < 0.5 {
-                    0.5 * (2.0 * p).powi(3)
+            Ease::Step => {
+                if p > 0.0 {
+                    1.0
                 } else {
-                    1.0 - 0.5 * (2.0 - 2.0 * p).powi(3)
+                    0.0
                 }
             }
-            Ease::Power3In => p.powi(4),
-            Ease::Power3Out => 1.0 - (1.0 - p).powi(4),
+            Ease::Power1In => ease_variant(pow(2), p, 0),
+            Ease::Power1Out => ease_variant(pow(2), p, 1),
+            Ease::Power1InOut => ease_variant(pow(2), p, 2),
+            Ease::Power2In => ease_variant(pow(3), p, 0),
+            Ease::Power2Out => ease_variant(pow(3), p, 1),
+            Ease::Power2InOut => ease_variant(pow(3), p, 2),
+            Ease::Power3In => ease_variant(pow(4), p, 0),
+            Ease::Power3Out => ease_variant(pow(4), p, 1),
+            Ease::Power3InOut => ease_variant(pow(4), p, 2),
+            Ease::Power4In => ease_variant(pow(5), p, 0),
+            Ease::Power4Out => ease_variant(pow(5), p, 1),
+            Ease::Power4InOut => ease_variant(pow(5), p, 2),
+            Ease::SineIn => ease_variant(sine, p, 0),
+            Ease::SineOut => ease_variant(sine, p, 1),
+            Ease::SineInOut => ease_variant(sine, p, 2),
+            Ease::ExpoIn => ease_variant(expo, p, 0),
+            Ease::ExpoOut => ease_variant(expo, p, 1),
+            Ease::ExpoInOut => ease_variant(expo, p, 2),
+            Ease::CircIn => ease_variant(circ, p, 0),
+            Ease::CircOut => ease_variant(circ, p, 1),
+            Ease::CircInOut => ease_variant(circ, p, 2),
+            Ease::BackIn => ease_variant(back, p, 0),
+            Ease::BackOut => ease_variant(back, p, 1),
+            Ease::BackInOut => ease_variant(back, p, 2),
+            Ease::ElasticIn => ease_variant(elastic, p, 0),
+            Ease::ElasticOut => ease_variant(elastic, p, 1),
+            Ease::ElasticInOut => ease_variant(elastic, p, 2),
+            Ease::BounceIn => ease_variant(bounce_in, p, 0),
+            Ease::BounceOut => ease_variant(bounce_in, p, 1),
+            Ease::BounceInOut => ease_variant(bounce_in, p, 2),
         }
     }
 }

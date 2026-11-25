@@ -1,4 +1,5 @@
 use crate::scene::Scene;
+
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::io::Read;
@@ -19,6 +20,18 @@ struct ClipWindow {
     height: u32,
     first_frame: u32,
     last_frame: u32,
+    /// Clip time (seconds) shown at `first_frame`.
+    start_sec: f64,
+}
+
+/// A clip to decode for output frames `first_frame..=last_frame`, starting at `start_sec`
+/// into the file.
+pub struct WindowSpec {
+    pub key: String,
+    pub path: PathBuf,
+    pub first_frame: u32,
+    pub last_frame: u32,
+    pub start_sec: f64,
 }
 
 struct ActiveDecoder {
@@ -32,8 +45,8 @@ struct ActiveDecoder {
 }
 
 impl ActiveDecoder {
-    fn spawn(path: &Path, width: u32, height: u32, start_frame: u32, count: u32, fps: u32) -> Result<Self> {
-        let start_sec = start_frame as f64 / fps as f64;
+    fn spawn(path: &Path, width: u32, height: u32, start_frame: u32, start_sec: f64, count: u32, fps: u32) -> Result<Self> {
+        let start_sec = start_sec.max(0.0);
         let mut child = Command::new("ffmpeg")
             .args([
                 "-hide_banner",
@@ -45,6 +58,8 @@ impl ActiveDecoder {
             ])
             .arg(path)
             .args([
+                "-vf",
+                &format!("fps={}", fps),
                 "-frames:v",
                 &count.to_string(),
                 "-f",
@@ -149,25 +164,37 @@ impl ClipPool {
             }
         }
 
-        // Probe clip dimensions in parallel (drops startup latency from ~1.5s to ~0.15s)
-        let items: Vec<(String, u32, u32, PathBuf)> = ranges
+        let specs = ranges
             .into_iter()
-            .map(|(id, (f0, f1, p))| (id, f0, f1, p))
+            .map(|(id, (f0, f1, p))| WindowSpec {
+                key: id,
+                path: p,
+                first_frame: f0,
+                last_frame: f1,
+                start_sec: f0 as f64 / scene.fps as f64,
+            })
             .collect();
+        Ok(Self::from_windows(scene.fps, max_concurrent, specs))
+    }
+
+    /// Build a pool from explicit windows (graph scenes).
+    pub fn from_windows(fps: u32, max_concurrent: usize, specs: Vec<WindowSpec>) -> Self {
+        // Probe clip dimensions in parallel (drops startup latency from ~1.5s to ~0.15s)
         let probed: Vec<(String, ClipWindow)> = thread::scope(|scope| {
-            let handles: Vec<_> = items
+            let handles: Vec<_> = specs
                 .into_iter()
-                .map(|(id, first_frame, last_frame, path)| {
+                .map(|s| {
                     scope.spawn(move || {
-                        let (width, height) = probe_dimensions(&path).unwrap_or((720, 1280));
+                        let (width, height) = probe_dimensions(&s.path).unwrap_or((720, 1280));
                         (
-                            id,
+                            s.key,
                             ClipWindow {
-                                path,
+                                path: s.path,
                                 width,
                                 height,
-                                first_frame,
-                                last_frame,
+                                first_frame: s.first_frame,
+                                last_frame: s.last_frame,
+                                start_sec: s.start_sec,
                             },
                         )
                     })
@@ -177,13 +204,13 @@ impl ClipPool {
         });
         let windows: HashMap<String, ClipWindow> = probed.into_iter().collect();
 
-        Ok(Self {
-            fps: scene.fps,
+        Self {
+            fps,
             max_concurrent,
             windows,
             active: HashMap::new(),
             posters: HashMap::new(),
-        })
+        }
     }
 
     /// Retire clips that have scrolled out and pre-spawn clips entering within 2 frames.
@@ -221,10 +248,17 @@ impl ClipPool {
                 break;
             }
             let count = (w.last_frame - w.first_frame + 1).max(1);
-            let dec = ActiveDecoder::spawn(&w.path, w.width, w.height, w.first_frame, count, self.fps)?;
+            let dec = ActiveDecoder::spawn(&w.path, w.width, w.height, w.first_frame, w.start_sec, count, self.fps)?;
             self.active.insert(id.clone(), dec);
         }
         Ok(())
+    }
+
+    /// The decoded frame for `key` at `frame_idx`, if its decoder is running.
+    pub fn video_frame(&mut self, key: &str, frame_idx: u32) -> Option<(u32, u32, &[u8])> {
+        let dec = self.active.get_mut(key)?;
+        let (w, h) = (dec.width, dec.height);
+        dec.advance_to(frame_idx).map(|rgba| (w, h, rgba))
     }
 
     pub fn active_count(&self) -> usize {

@@ -16,6 +16,32 @@ Tested on an Intel Core i7-10810U laptop with an NVIDIA Quadro P520 and Intel Qu
 | Sprocket v0.1 Rust `wgpu` | 9.60s internal, 10.35s wall | 287.8 MB app, 581.7 MB total tree | 4.3% app across 12 threads, 55.3% avg sys | 10x faster than HyperFrames, Quadro P520 Vulkan plus Intel `h264_qsv`, max 2 concurrent decoders |
 | WebCodecs plus `mediabunny` | 6.19s | 1,075.4 MB total tree | 61.3% avg sys | 16.3x faster than HyperFrames, runs in-process inside Chrome |
 
+### Full Blinked reel 02 as a graph scene
+
+The whole 20.45 s reel (614 frames: feed, freeze, pull back to the paper column, rewind, collapse into the barcode, slip run, tear, wordmark, zoom back to frame 0), same laptop:
+
+| Pipeline | Total time | Notes |
+|---|---|---|
+| HyperFrames local | 190.4s | screenshot capture, 2 workers |
+| Sprocket graph scene | 13.6s | 48.6 render fps, `h264_qsv`, SSIM 0.972 against the HyperFrames render |
+
+## Two scene formats
+
+- **Feed scenes** (`sprocket schema`): one scrolling column of reel tiles. The four opening tests in `examples/blinked-02/v*.json` use it.
+- **Graph scenes** (`sprocket schema --graph`): any JSON with a top-level `layers` array. Each layer is a tree of nodes (`group`, `rect`, `ellipse`, `polygon`, `rects`, `svg`, `image`, `video`, `text`, `ig_reel`, `ig_fixed`) with a CSS-like box, a transform origin and GSAP-style keyframed `x`, `y`, `scale`, `scale_x`, `scale_y`, `rotation`, `opacity`, clip insets, `blur`, `width` and `height`. Grade layers desaturate and dim what's below. Layers get motion blur from a tracked node's screen motion or from averaged sub-frames. The full format is in `docs/graph-scenes.md`.
+
+Graph scenes are meant for any Moxel, Hillcrest or Blinked video. When a video needs something they can't draw, add a general node type or prop rather than a field for one reel.
+
+```powershell
+sprocket schema --graph            # field guide
+sprocket schema --graph --example  # starter scene that needs no assets
+python exampleslinked-02\export_reel02.py <soulscroll-content>eels-name-three
+sprocket render --scene exampleslinked-02eel02.json `
+  --assets-dir <soulscroll-content>eels-name-threessets --out outeel02.mp4 --json
+```
+
+`export_reel02.py` reads the reel's own `build_reel.py` and `reel_timing.py`, so re-run it after the reel's timing changes.
+
 ## Install globally on PATH
 
 ```powershell
@@ -60,7 +86,9 @@ Available `--variant` presets: `v1-phone`, `v2-fullbleed`, `v3-strip`, `v4-pullb
 
 ## Architecture
 
-- `src/scene.rs`: declarative JSON scene format with GSAP-compatible easing curves, timeline velocity queries, and layout math
+- `src/graph.rs`, `src/graph_render.rs` and `src/graph.wgsl`: graph scenes, per-frame evaluation, instanced GPU quads with affine transforms, rounded clips, anti-aliased edges, tiling, blur, layer motion blur and grading
+- `src/text.rs`: graph-scene text with letter spacing, stroke, shadow, boxed backgrounds and a tail square
+- `src/scene.rs`: declarative JSON feed scene format with GSAP-compatible easing curves, timeline velocity queries, and layout math
 - `src/gpu.rs` and `src/shaders.wgsl`: `wgpu` offscreen compositing, cover-fit UV mapping, rounded-rect clipping, adaptive up to 64-tap directional motion blur, desaturation, and dim grading
 - `src/fonts.rs` and `src/ui.rs`: pure-Rust WOFF2 decompression via `wuff`, text shaping via `cosmic-text`, and cached per-reel vector chrome via `tiny-skia`
 - `src/decoder.rs`: windowed on-demand `ffmpeg` clip decoding that spawns only the 1 to 3 clips visible in the current frame window and releases scrolled-out clips immediately

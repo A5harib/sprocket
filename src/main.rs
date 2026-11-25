@@ -2,7 +2,10 @@ mod decoder;
 mod encoder;
 mod fonts;
 mod gpu;
+mod graph;
+mod graph_render;
 mod scene;
+mod text;
 mod ui;
 
 use anyhow::{Context, Result};
@@ -11,6 +14,7 @@ use decoder::ClipPool;
 use encoder::{EncoderKind, VideoEncoder};
 use fonts::FontStore;
 use gpu::{GpuRenderer, GpuTexture};
+use graph::GraphScene;
 use scene::{FixedChrome, Ground, Scene};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -54,6 +58,10 @@ enum Commands {
         /// Print a minimal valid starter scene JSON instead of the field guide
         #[arg(long)]
         example: bool,
+
+        /// Show the graph scene format (layers of animated nodes) instead of the feed format
+        #[arg(long)]
+        graph: bool,
     },
 
     /// Validate a scene JSON and verify referenced assets exist on disk before rendering
@@ -155,8 +163,12 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::Doctor { json } => run_doctor(json),
         Commands::List { dir, json } => run_list(dir, json),
-        Commands::Schema { example } => {
-            run_schema(example);
+        Commands::Schema { example, graph } => {
+            if graph {
+                run_graph_schema(example);
+            } else {
+                run_schema(example);
+            }
             Ok(())
         }
         Commands::Validate {
@@ -179,10 +191,23 @@ fn main() -> Result<()> {
             json,
         } => {
             let scene_path = resolve_scene_path(scene, &variant);
-            let scene_json = std::fs::read_to_string(&scene_path)
-                .with_context(|| format!("failed to read scene {}", scene_path.display()))?;
-            let scene: Scene = serde_json::from_str(&scene_json)
-                .with_context(|| format!("failed to parse scene {}", scene_path.display()))?;
+            let scene = match load_scene(&scene_path)? {
+                AnyScene::Graph(g) => {
+                    let out_path = out.unwrap_or_else(|| PathBuf::from("out").join(format!("{}.mp4", g.id)));
+                    return graph_render::render_graph(
+                        &g,
+                        &assets_dir,
+                        &out_path,
+                        &graph_render::RenderOptions {
+                            encoder: encoder.into(),
+                            motion_blur: !no_motion_blur,
+                            max_decoders,
+                            json,
+                        },
+                    );
+                }
+                AnyScene::Feed(s) => *s,
+            };
 
             let out_path = out.unwrap_or_else(|| PathBuf::from("out").join(format!("{}.mp4", scene.id)));
             render_scene(
@@ -195,6 +220,27 @@ fn main() -> Result<()> {
                 json,
             )
         }
+    }
+}
+
+/// A scene file is either the original feed format or a graph scene (it has `layers`).
+enum AnyScene {
+    Feed(Box<Scene>),
+    Graph(Box<GraphScene>),
+}
+
+fn load_scene(path: &Path) -> Result<AnyScene> {
+    let raw = std::fs::read_to_string(path).with_context(|| format!("failed to read scene {}", path.display()))?;
+    let value: serde_json::Value =
+        serde_json::from_str(&raw).with_context(|| format!("failed to parse JSON {}", path.display()))?;
+    if value.get("layers").is_some() {
+        let g: GraphScene = serde_json::from_value(value)
+            .with_context(|| format!("failed to parse graph scene {}", path.display()))?;
+        Ok(AnyScene::Graph(Box::new(g)))
+    } else {
+        let s: Scene =
+            serde_json::from_value(value).with_context(|| format!("failed to parse scene {}", path.display()))?;
+        Ok(AnyScene::Feed(Box::new(s)))
     }
 }
 
@@ -270,10 +316,11 @@ fn run_list(dir: Option<PathBuf>, as_json: bool) -> Result<()> {
         if path.extension().and_then(|s| s.to_str()) != Some("json") {
             continue;
         }
-        let raw = std::fs::read_to_string(&path)?;
-        if let Ok(scene) = serde_json::from_str::<Scene>(&raw) {
-            entries.push(serde_json::json!({
-                "variant": path.file_stem().and_then(|s| s.to_str()).unwrap_or(&scene.id),
+        let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("").to_string();
+        match load_scene(&path) {
+            Ok(AnyScene::Feed(scene)) => entries.push(serde_json::json!({
+                "variant": stem,
+                "format": "feed",
                 "id": scene.id,
                 "width": scene.width,
                 "height": scene.height,
@@ -282,7 +329,20 @@ fn run_list(dir: Option<PathBuf>, as_json: bool) -> Result<()> {
                 "frames": scene.total_frames(),
                 "tiles": scene.feed.tiles.len(),
                 "path": path.display().to_string(),
-            }));
+            })),
+            Ok(AnyScene::Graph(g)) => entries.push(serde_json::json!({
+                "variant": stem,
+                "format": "graph",
+                "id": g.id,
+                "width": g.width,
+                "height": g.height,
+                "fps": g.fps,
+                "duration": g.duration,
+                "frames": g.total_frames(),
+                "nodes": g.node_count(),
+                "path": path.display().to_string(),
+            })),
+            Err(_) => {}
         }
     }
     entries.sort_by(|a, b| a["variant"].as_str().cmp(&b["variant"].as_str()));
@@ -299,15 +359,21 @@ fn run_list(dir: Option<PathBuf>, as_json: bool) -> Result<()> {
     } else {
         println!("Scenes in {}:", dir.display());
         for e in &entries {
+            let parts = if e["format"] == "graph" {
+                format!("{} nodes", e["nodes"].as_u64().unwrap_or(0))
+            } else {
+                format!("{} tiles", e["tiles"].as_u64().unwrap_or(0))
+            };
             println!(
-                "  {}  {}x{} @ {}fps  {:.2}s ({} frames, {} tiles)  {}",
+                "  {}  [{}] {}x{} @ {}fps  {:.2}s ({} frames, {})  {}",
                 e["variant"].as_str().unwrap_or(""),
+                e["format"].as_str().unwrap_or(""),
                 e["width"].as_u64().unwrap_or(0),
                 e["height"].as_u64().unwrap_or(0),
                 e["fps"].as_u64().unwrap_or(0),
                 e["duration"].as_f64().unwrap_or(0.0),
                 e["frames"].as_u64().unwrap_or(0),
-                e["tiles"].as_u64().unwrap_or(0),
+                parts,
                 e["path"].as_str().unwrap_or(""),
             );
         }
@@ -316,10 +382,10 @@ fn run_list(dir: Option<PathBuf>, as_json: bool) -> Result<()> {
 }
 
 fn run_validate(scene_path: &Path, assets_dir: Option<&Path>, as_json: bool) -> Result<()> {
-    let raw = std::fs::read_to_string(scene_path)
-        .with_context(|| format!("failed to read scene {}", scene_path.display()))?;
-    let scene: Scene = serde_json::from_str(&raw)
-        .with_context(|| format!("failed to parse scene {}", scene_path.display()))?;
+    let scene = match load_scene(scene_path)? {
+        AnyScene::Graph(g) => return run_validate_graph(&g, scene_path, assets_dir, as_json),
+        AnyScene::Feed(s) => *s,
+    };
 
     let mut errors: Vec<String> = Vec::new();
     if scene.width == 0 || scene.height == 0 {
@@ -399,6 +465,99 @@ fn run_validate(scene_path: &Path, assets_dir: Option<&Path>, as_json: bool) -> 
         anyhow::bail!("scene validation failed with {} error(s)", errors.len());
     }
     Ok(())
+}
+
+fn run_validate_graph(scene: &GraphScene, scene_path: &Path, assets_dir: Option<&Path>, as_json: bool) -> Result<()> {
+    let mut errors: Vec<String> = Vec::new();
+    let mut warnings: Vec<String> = Vec::new();
+    if scene.width == 0 || scene.height == 0 {
+        errors.push("width and height must be > 0".to_string());
+    }
+    if scene.fps == 0 || scene.duration <= 0.0 {
+        errors.push("fps and duration must be > 0".to_string());
+    }
+    let flat = graph::FlatScene::new(scene);
+    let mut seen = std::collections::HashSet::new();
+    for n in &flat.nodes {
+        if let Some(id) = &n.node.id {
+            if !seen.insert(id.clone()) {
+                warnings.push(format!("duplicate node id {id:?} (motion blur tracks the first)"));
+            }
+        }
+    }
+    for l in &scene.layers {
+        if let graph::Layer::Nodes { motion_blur: graph::LayerBlur::Track { node }, .. } = l {
+            if !flat.by_id.contains_key(node) {
+                errors.push(format!("motion_blur track node {node:?} does not exist"));
+            }
+        }
+    }
+    let refs = scene.asset_refs();
+    let mut checked = 0usize;
+    if let Some(dir) = assets_dir {
+        for (label, rel) in &refs {
+            checked += 1;
+            let p = dir.join(rel);
+            if !p.is_file() {
+                errors.push(format!("missing {}: {}", label, p.display()));
+            }
+        }
+    }
+    let ok = errors.is_empty();
+    if as_json {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&serde_json::json!({
+                "ok": ok,
+                "format": "graph",
+                "scene": scene_path.display().to_string(),
+                "id": scene.id,
+                "width": scene.width,
+                "height": scene.height,
+                "fps": scene.fps,
+                "duration": scene.duration,
+                "frames": scene.total_frames(),
+                "layers": scene.layers.len(),
+                "nodes": flat.nodes.len(),
+                "checked_assets": checked,
+                "errors": errors,
+                "warnings": warnings,
+            }))?
+        );
+    } else {
+        for w in &warnings {
+            eprintln!("[sprocket] WARN: {}", w);
+        }
+        if ok {
+            println!(
+                "[sprocket] OK: {} graph ({}x{} @ {}fps, {} frames, {} layers, {} nodes, {} assets verified)",
+                scene.id,
+                scene.width,
+                scene.height,
+                scene.fps,
+                scene.total_frames(),
+                scene.layers.len(),
+                flat.nodes.len(),
+                checked
+            );
+        } else {
+            for e in &errors {
+                eprintln!("[sprocket] ERROR: {}", e);
+            }
+        }
+    }
+    if !ok {
+        anyhow::bail!("scene validation failed with {} error(s)", errors.len());
+    }
+    Ok(())
+}
+
+fn run_graph_schema(example: bool) {
+    if example {
+        println!("{}", include_str!("../examples/graph-starter.json"));
+    } else {
+        println!("{}", include_str!("../docs/graph-scenes.md"));
+    }
 }
 
 fn run_schema(example: bool) {

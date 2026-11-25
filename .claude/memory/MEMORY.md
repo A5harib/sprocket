@@ -1,0 +1,1 @@
+- [General renderer](general-renderer.md) — Sprocket has to handle any Moxel, Hillcrest or Blinked video, so add general features

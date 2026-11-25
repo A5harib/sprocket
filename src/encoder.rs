@@ -113,7 +113,8 @@ impl VideoEncoder {
         }
 
         if audio_path.is_some() {
-            cmd.args(["-c:a", "aac", "-b:a", "192k", "-shortest"]);
+            // Pad the audio with silence so the frame count, not the audio length, sets the duration.
+            cmd.args(["-af", "apad", "-c:a", "aac", "-b:a", "192k", "-shortest"]);
         }
         cmd.args(["-movflags", "+faststart"]);
         cmd.arg(output_path);
