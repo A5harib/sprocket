@@ -164,9 +164,20 @@ impl VideoEncoder {
     }
 }
 
-fn probe_encoder(codec: &str) -> bool {
+pub fn ffmpeg_available() -> bool {
+    Command::new("ffmpeg")
+        .arg("-version")
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
+pub fn probe_encoder(codec: &str) -> bool {
     if codec == "libx264" {
-        return true;
+        return ffmpeg_available();
     }
     let pix = if codec == "h264_qsv" || codec == "h264_mf" {
         "nv12"

@@ -66,6 +66,21 @@ pub struct GpuRenderer {
 }
 
 impl GpuRenderer {
+    pub fn probe_adapter() -> Result<(String, String)> {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::DX12 | wgpu::Backends::VULKAN,
+            ..Default::default()
+        });
+        let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::HighPerformance,
+            compatible_surface: None,
+            force_fallback_adapter: false,
+        }))
+        .context("failed to find a compatible DX12/Vulkan GPU adapter")?;
+        let info = adapter.get_info();
+        Ok((info.name, format!("{:?}", info.backend)))
+    }
+
     pub fn new(width: u32, height: u32) -> Result<Self> {
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::DX12 | wgpu::Backends::VULKAN,
