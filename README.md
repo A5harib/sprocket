@@ -35,9 +35,9 @@ Graph scenes are meant for any Moxel, Hillcrest or Blinked video. When a video n
 ```powershell
 sprocket schema --graph            # field guide
 sprocket schema --graph --example  # starter scene that needs no assets
-python exampleslinked-02\export_reel02.py <soulscroll-content>eels-name-three
-sprocket render --scene exampleslinked-02eel02.json `
-  --assets-dir <soulscroll-content>eels-name-threessets --out outeel02.mp4 --json
+python examples\blinked-02\export_reel02.py <soulscroll-content>\reels\02-name-three
+sprocket render --scene examples\blinked-02\reel02.json `
+  --assets-dir <soulscroll-content>\reels\02-name-three\assets --out out\reel02.mp4 --json
 ```
 
 `export_reel02.py` reads the reel's own `build_reel.py` and `reel_timing.py`, so re-run it after the reel's timing changes.
