@@ -1,0 +1,637 @@
+{
+  "id": "v1-phone",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 5.6,
+  "audio": "mix.wav",
+  "motion_blur": {
+    "enabled": true,
+    "shutter_angle": 60.0,
+    "samples": 15
+  },
+  "ground": {
+    "kind": "paper",
+    "color": [
+      0.9607843137254902,
+      0.9568627450980393,
+      0.9333333333333333,
+      1.0
+    ],
+    "texture": "paper.png",
+    "tile_px": 512.0
+  },
+  "feed": {
+    "viewport": {
+      "x": 119,
+      "y": 211,
+      "width": 842,
+      "height": 1498,
+      "corner_radius": 72.0
+    },
+    "tile_width": 1080.0,
+    "tile_height": 1920.0,
+    "pitch": 1920.0,
+    "column_x": 0.0,
+    "tile_scale": 0.78,
+    "scale_wrapper": true,
+    "scroll_y": {
+      "initial": 0.0,
+      "tweens": [
+        {
+          "start": 0.5,
+          "duration": 0.16,
+          "to": -1920,
+          "ease": "power3_out"
+        },
+        {
+          "start": 0.88,
+          "duration": 0.16,
+          "to": -3840,
+          "ease": "power3_out"
+        },
+        {
+          "start": 1.22,
+          "duration": 0.16,
+          "to": -5760,
+          "ease": "power3_out"
+        },
+        {
+          "start": 1.52,
+          "duration": 0.1485,
+          "to": -7680,
+          "ease": "power3_out"
+        },
+        {
+          "start": 1.79,
+          "duration": 0.16,
+          "to": -9600,
+          "ease": "power3_out"
+        },
+        {
+          "start": 2.34,
+          "duration": 0.132,
+          "to": -11520,
+          "ease": "power3_out"
+        },
+        {
+          "start": 2.58,
+          "duration": 0.1155,
+          "to": -13440,
+          "ease": "power3_out"
+        },
+        {
+          "start": 2.79,
+          "duration": 0.1045,
+          "to": -15360,
+          "ease": "power3_out"
+        },
+        {
+          "start": 2.98,
+          "duration": 0.099,
+          "to": -17280,
+          "ease": "power3_out"
+        },
+        {
+          "start": 3.16,
+          "duration": 0.0935,
+          "to": -19200,
+          "ease": "power3_out"
+        },
+        {
+          "start": 3.33,
+          "duration": 0.088,
+          "to": -21120,
+          "ease": "power3_out"
+        },
+        {
+          "start": 3.49,
+          "duration": 0.0825,
+          "to": -23040,
+          "ease": "power3_out"
+        },
+        {
+          "start": 3.64,
+          "duration": 0.0825,
+          "to": -24960,
+          "ease": "power3_out"
+        },
+        {
+          "start": 3.79,
+          "duration": 0.077,
+          "to": -26880,
+          "ease": "power3_out"
+        },
+        {
+          "start": 3.93,
+          "duration": 0.077,
+          "to": -28800,
+          "ease": "power3_out"
+        },
+        {
+          "start": 4.0,
+          "duration": 0.07,
+          "to": -29472.0,
+          "ease": "power2_in"
+        }
+      ]
+    },
+    "chrome_style": "simple",
+    "tiles": [
+      {
+        "slot_k": 0,
+        "id": "garlic",
+        "video": "clips/garlic.mp4",
+        "poster": "posters/garlic.jpg",
+        "crop": "full",
+        "handle": "dani.cooksathome",
+        "caption": "the garlic trick my nonna swore by 🧄 #cooking #kitchenhacks",
+        "audio_line": "dani.cooksathome · Original audio",
+        "likes": "48.2K",
+        "comments": "312",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          240,
+          56,
+          31
+        ],
+        "progress": {
+          "start": 0.0,
+          "duration": 0.5,
+          "from": 0.45,
+          "to": 0.5056
+        }
+      },
+      {
+        "slot_k": 1,
+        "id": "pizza",
+        "video": "clips/pizza.mp4",
+        "poster": "posters/pizza.jpg",
+        "crop": "full",
+        "handle": "mattcutsthepizza",
+        "caption": "you've been doing it wrong this whole time 🍕 #pizza #foodhacks",
+        "audio_line": "mattcutsthepizza · Original audio",
+        "likes": "112K",
+        "comments": "9,408",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "you've been cutting pizza wrong your whole life",
+        "overlay_style": "normal",
+        "avatar_color": [
+          0,
+          123,
+          131
+        ],
+        "progress": {
+          "start": 0.5,
+          "duration": 0.38,
+          "from": 0.02,
+          "to": 0.0622
+        }
+      },
+      {
+        "slot_k": 2,
+        "id": "gym",
+        "video": "clips/gym.mp4",
+        "poster": "posters/gym.jpg",
+        "crop": "full",
+        "handle": "marcus.lifts_",
+        "caption": "day 212. nobody's coming to save you. #gymmotivation",
+        "audio_line": "marcus.lifts_ · Original audio",
+        "likes": "9,104",
+        "comments": "87",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          212,
+          240,
+          43
+        ],
+        "progress": {
+          "start": 0.88,
+          "duration": 0.34,
+          "from": 0.02,
+          "to": 0.0578
+        }
+      },
+      {
+        "slot_k": 3,
+        "id": "cat",
+        "video": "clips/cat.mp4",
+        "poster": "posters/cat.jpg",
+        "crop": "full",
+        "handle": "milo.wears.hats",
+        "caption": "he picked the hat himself 🐱 #catsofinstagram",
+        "audio_line": "Arulo · Trap Hamza",
+        "likes": "1.1M",
+        "comments": "6,920",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "when the group chat goes quiet",
+        "overlay_style": "normal",
+        "avatar_color": [
+          138,
+          108,
+          240
+        ],
+        "progress": {
+          "start": 1.22,
+          "duration": 0.3,
+          "from": 0.02,
+          "to": 0.0533
+        }
+      },
+      {
+        "slot_k": 4,
+        "id": "grwm",
+        "video": "clips/grwm.mp4",
+        "poster": "posters/grwm.jpg",
+        "crop": "full",
+        "handle": "anaglowsup",
+        "caption": "grwm for a first date 💕 be honest, too much?",
+        "audio_line": "anaglowsup · Original audio",
+        "likes": "23.7K",
+        "comments": "401",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          240,
+          138,
+          31
+        ],
+        "progress": {
+          "start": 1.52,
+          "duration": 0.27,
+          "from": 0.02,
+          "to": 0.05
+        }
+      },
+      {
+        "slot_k": 5,
+        "id": "dog",
+        "video": "clips/dog.mp4",
+        "poster": "posters/dog.jpg",
+        "crop": "full",
+        "handle": "biscuit.goes.swimming",
+        "caption": "he has never missed. not once 🐶 #labrador",
+        "audio_line": "biscuit.goes.swimming · Original audio",
+        "likes": "304K",
+        "comments": "1,877",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          43,
+          168,
+          74
+        ],
+        "progress": {
+          "start": 1.79,
+          "duration": 0.55,
+          "from": 0.02,
+          "to": 0.0811
+        }
+      },
+      {
+        "slot_k": 6,
+        "id": "pour",
+        "video": "clips/pour.mp4",
+        "poster": "posters/pour.jpg",
+        "crop": "full",
+        "handle": "fizz.asmr.daily",
+        "caption": "turn your sound on for this one 😮 #asmr #satisfying",
+        "audio_line": "fizz.asmr.daily · Original audio",
+        "likes": "88.0K",
+        "comments": "640",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          224,
+          69,
+          123
+        ],
+        "progress": {
+          "start": 2.34,
+          "duration": 0.24,
+          "from": 0.02,
+          "to": 0.0467
+        }
+      },
+      {
+        "slot_k": 7,
+        "id": "skate",
+        "video": "clips/skate.mp4",
+        "poster": "posters/skate.jpg",
+        "crop": "full",
+        "handle": "rampkid.josh",
+        "caption": "first try. wait for it 🛹",
+        "audio_line": "rampkid.josh · Original audio",
+        "likes": "61.3K",
+        "comments": "903",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "wait for it",
+        "overlay_style": "normal",
+        "avatar_color": [
+          58,
+          123,
+          213
+        ],
+        "progress": {
+          "start": 2.58,
+          "duration": 0.21,
+          "from": 0.02,
+          "to": 0.0433
+        }
+      },
+      {
+        "slot_k": 8,
+        "id": "dance",
+        "video": "clips/dance.mp4",
+        "poster": "posters/dance.jpg",
+        "crop": "full",
+        "handle": "crew.fivee",
+        "caption": "learn it in 10 seconds 🔥 tag your dance partner",
+        "audio_line": "Arulo · Basketball Training",
+        "likes": "540K",
+        "comments": "3,302",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          240,
+          56,
+          31
+        ],
+        "progress": {
+          "start": 2.79,
+          "duration": 0.19,
+          "from": 0.02,
+          "to": 0.0411
+        }
+      },
+      {
+        "slot_k": 9,
+        "id": "aita",
+        "video": "clips/aita.mp4",
+        "poster": "posters/aita.jpg",
+        "crop": "bottom",
+        "handle": "aitareads.nightly",
+        "caption": "part 3 | AITA for banning kids from my wedding? #reddit #aita",
+        "audio_line": "aitareads.nightly · Original audio",
+        "likes": "77.9K",
+        "comments": "4,115",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          0,
+          123,
+          131
+        ],
+        "progress": {
+          "start": 2.98,
+          "duration": 0.18,
+          "from": 0.02,
+          "to": 0.04
+        }
+      },
+      {
+        "slot_k": 10,
+        "id": "pool",
+        "video": "clips/pool.mp4",
+        "poster": "posters/pool.jpg",
+        "crop": "full",
+        "handle": "sunny.dayss.travel",
+        "caption": "POV: you finally quit your 9 to 5 🍍",
+        "audio_line": "Lily J · Lo-Fi 05",
+        "likes": "201K",
+        "comments": "1,203",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "POV: you quit your 9 to 5",
+        "overlay_style": "pov",
+        "avatar_color": [
+          212,
+          240,
+          43
+        ],
+        "progress": {
+          "start": 3.16,
+          "duration": 0.17,
+          "from": 0.02,
+          "to": 0.0389
+        }
+      },
+      {
+        "slot_k": 11,
+        "id": "rain",
+        "video": "clips/rain.mp4",
+        "poster": "posters/rain.jpg",
+        "crop": "full",
+        "handle": "rainwindow.edits",
+        "caption": "she said she'd text back 🥀",
+        "audio_line": "Jonny S. · Classical 7",
+        "likes": "39.0K",
+        "comments": "288",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "she said she'd text back",
+        "overlay_style": "quiet",
+        "avatar_color": [
+          138,
+          108,
+          240
+        ],
+        "progress": {
+          "start": 3.33,
+          "duration": 0.16,
+          "from": 0.02,
+          "to": 0.0378
+        }
+      },
+      {
+        "slot_k": 12,
+        "id": "coffee",
+        "video": "clips/coffee.mp4",
+        "poster": "posters/coffee.jpg",
+        "crop": "full",
+        "handle": "5am.with.lena",
+        "caption": "5am. no excuses ☕ #morningroutine",
+        "audio_line": "5am.with.lena · Original audio",
+        "likes": "15.2K",
+        "comments": "133",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          240,
+          138,
+          31
+        ],
+        "progress": {
+          "start": 3.49,
+          "duration": 0.15,
+          "from": 0.02,
+          "to": 0.0367
+        }
+      },
+      {
+        "slot_k": 13,
+        "id": "couple",
+        "video": "clips/couple.mp4",
+        "poster": "posters/couple.jpg",
+        "crop": "full",
+        "handle": "theoandmaya.vlogs",
+        "caption": "babe look 🥺 tag them",
+        "audio_line": "theoandmaya.vlogs · Original audio",
+        "likes": "92.4K",
+        "comments": "1,066",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          43,
+          168,
+          74
+        ],
+        "progress": {
+          "start": 3.64,
+          "duration": 0.15,
+          "from": 0.02,
+          "to": 0.0367
+        }
+      },
+      {
+        "slot_k": 14,
+        "id": "boxer",
+        "video": "clips/boxer.mp4",
+        "poster": "posters/boxer.jpg",
+        "crop": "full",
+        "handle": "fightmindset.daily",
+        "caption": "discipline beats motivation. every time. #mindset",
+        "audio_line": "fightmindset.daily · Original audio",
+        "likes": "33.3K",
+        "comments": "214",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "discipline beats motivation",
+        "overlay_style": "normal",
+        "avatar_color": [
+          224,
+          69,
+          123
+        ],
+        "progress": {
+          "start": 3.79,
+          "duration": 0.14,
+          "from": 0.02,
+          "to": 0.0356
+        }
+      },
+      {
+        "slot_k": 15,
+        "id": "crowd",
+        "video": "clips/crowd.mp4",
+        "poster": "posters/crowd.jpg",
+        "crop": "full",
+        "handle": "frontrow.nights",
+        "caption": "the drop 🤯 #festival",
+        "audio_line": "frontrow.nights · Original audio",
+        "likes": "410K",
+        "comments": "2,980",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          58,
+          123,
+          213
+        ],
+        "progress": {
+          "start": 3.93,
+          "duration": 0.14,
+          "from": 0.02,
+          "to": 0.0356
+        }
+      },
+      {
+        "slot_k": 16,
+        "id": "garlic",
+        "video": null,
+        "poster": "posters/garlic.jpg",
+        "crop": "full",
+        "handle": "dani.cooksathome",
+        "caption": "the garlic trick my nonna swore by 🧄 #cooking #kitchenhacks",
+        "audio_line": "dani.cooksathome · Original audio",
+        "likes": "48.2K",
+        "comments": "312",
+        "reposts": "",
+        "shares": "",
+        "overlay_text": "",
+        "overlay_style": "normal",
+        "avatar_color": [
+          240,
+          56,
+          31
+        ]
+      }
+    ]
+  },
+  "fixed_chrome": {
+    "kind": "phone_bezel",
+    "bezel_px": 22.0,
+    "outer_radius": 92.0
+  },
+  "cover_overlay": {
+    "show_at": 4.21,
+    "ground": {
+      "kind": "paper",
+      "color": [
+        0.9607843137254902,
+        0.9568627450980393,
+        0.9333333333333333,
+        1.0
+      ],
+      "texture": "paper.png",
+      "tile_px": 512.0
+    }
+  },
+  "post_fx": {},
+  "headline": {
+    "text": "Name three",
+    "y": 800.0,
+    "font_size": 230.0,
+    "color": [
+      17,
+      17,
+      16,
+      255
+    ],
+    "dot_color": [
+      240,
+      56,
+      31,
+      255
+    ],
+    "start": 4.33,
+    "duration": 0.12,
+    "from_scale": 1.08,
+    "ease": "power3_out"
+  }
+}
